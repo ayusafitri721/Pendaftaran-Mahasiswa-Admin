@@ -1,0 +1,56 @@
+<?php
+session_start();
+include '../db/config.php';
+
+// Cek apakah admin sudah login
+if (!isset($_SESSION['username']) || $_SESSION['level'] !== 'admin') {
+    header("Location: login.php");
+    exit();
+}
+
+// Ambil data lulus/tidak lulus dari database
+$query_lulus = $conn->prepare("
+    SELECT cm.nomor_tes, cm.nama, ht.nilai_tes, ht.status_lulus 
+    FROM calon_mahasiswa cm
+    LEFT JOIN hasil_tes ht ON cm.nomor_tes = ht.nomor_tes
+    WHERE ht.status_lulus IS NOT NULL
+");
+$query_lulus->execute();
+$lulus_list = $query_lulus->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List Lulus/Tidak Lulus</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h3>List Lulus/Tidak Lulus</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Nomor Tes</th>
+                    <th>Nama</th>
+                    <th>Nilai Tes</th>
+                    <th>Status Lulus</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($lulus_list as $lulus): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($lulus['nomor_tes']) ?></td>
+                        <td><?= htmlspecialchars($lulus['nama']) ?></td>
+                        <td><?= htmlspecialchars($lulus['nilai_tes']) ?></td>
+                        <td><?= htmlspecialchars($lulus['status_lulus']) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
